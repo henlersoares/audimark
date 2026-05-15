@@ -56,30 +56,48 @@ export class SpotifyService {
 
   async getArtistAlbums(spotifyId: string) {
     const token = await this.getAccessToken()
+    let allAlbums: any[] = []
+    let offset = 0
+    const limit = 5
 
-    const response = await fetch(
-      `https://api.spotify.com/v1/artists/${spotifyId}/albums?include_groups=album`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    )
+    while (true) {
+      const response = await fetch(
+        `https://api.spotify.com/v1/artists/${spotifyId}/albums?include_groups=album&limit=${limit}&offset=${offset}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
 
-    const data = await response.json()
+      const data = await response.json()
 
-    if (!data.items) {
-        this.logger.error('Spotify response:', JSON.stringify(data))
-        return []
+      if (!data.items || data.items.length === 0) break
+
+      allAlbums = [...allAlbums, ...data.items]
+
+      if (allAlbums.length >= data.total) break
+
+      offset += limit
     }
 
-    return data.items.map((album: any) => ({
-      spotifyId: album.id,
-      title: album.name,
-      coverUrl: album.images?.[0]?.url ?? null,
-      releaseDate: new Date(album.release_date),
-      totalTracks: album.total_tracks,
-      albumType: album.album_type,
-      artistId: spotifyId,
-    }))
+    this.logger.log(`Total albums fetched: ${allAlbums.length}`)
+
+    const seen = new Set<string>()
+    return allAlbums
+      .filter((album: any) => {
+        const key = album.name.toLowerCase()
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      .map((album: any) => ({
+        spotifyId: album.id,
+        title: album.name,
+        coverUrl: album.images?.[0]?.url ?? null,
+        releaseDate: new Date(album.release_date),
+        totalTracks: album.total_tracks,
+        albumType: album.album_type,
+        artistId: spotifyId,
+      }))
   }
 
   async getArtist(spotifyId: string) {
@@ -102,25 +120,25 @@ export class SpotifyService {
     }
   }
   async getAlbum(spotifyId: string) {
-  const token = await this.getAccessToken()
+    const token = await this.getAccessToken()
 
-  const response = await fetch(
-    `https://api.spotify.com/v1/albums/${spotifyId}`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
+    const response = await fetch(
+      `https://api.spotify.com/v1/albums/${spotifyId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    )
+
+    const data = await response.json()
+    return {
+      spotifyId: data.id,
+      title: data.name,
+      coverUrl: data.images?.[0]?.url ?? null,
+      releaseDate: new Date(data.release_date),
+      totalTracks: data.total_tracks,
+      albumType: data.album_type,
+      artistId: data.artists?.[0]?.id,
     }
-  )
-
-  const data = await response.json()
-  return {
-    spotifyId: data.id,
-    title: data.name,
-    coverUrl: data.images?.[0]?.url ?? null,
-    releaseDate: new Date(data.release_date),
-    totalTracks: data.total_tracks,
-    albumType: data.album_type,
-    artistId: data.artists?.[0]?.id,
   }
-}
 
 }

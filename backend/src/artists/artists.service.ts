@@ -7,7 +7,7 @@ export class ArtistsService {
   constructor(
     private prisma: PrismaService,
     private spotify: SpotifyService,
-  ) {}
+  ) { }
 
   async search(query: string) {
     const spotifyResults = await this.spotify.searchArtists(query)
@@ -40,12 +40,31 @@ export class ArtistsService {
       include: { albums: true },
     })
 
-    if (existing) return existing
+    if (existing && existing.albums.length > 0) return existing
 
     const artist = await this.spotify.getArtist(spotifyId)
     const albums = await this.spotify.getArtistAlbums(spotifyId)
 
-    const created = await this.prisma.artist.create({
+    if (existing) {
+      return this.prisma.artist.update({
+        where: { spotifyId },
+        data: {
+          albums: {
+            create: albums.map((album: any) => ({
+              spotifyId: album.spotifyId,
+              title: album.title,
+              coverUrl: album.coverUrl,
+              releaseDate: album.releaseDate,
+              totalTracks: album.totalTracks,
+              albumType: album.albumType,
+            })),
+          },
+        },
+        include: { albums: true },
+      })
+    }
+
+    return this.prisma.artist.create({
       data: {
         spotifyId: artist.spotifyId,
         name: artist.name,
@@ -64,7 +83,5 @@ export class ArtistsService {
       },
       include: { albums: true },
     })
-
-    return created
   }
 }
