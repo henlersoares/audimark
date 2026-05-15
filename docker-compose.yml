@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  audimark-db:
+    image: postgres:16
+    container_name: audimark-db
+    environment:
+      POSTGRES_USER: audimark
+      POSTGRES_PASSWORD: audimark123
+      POSTGRES_DB: audimark
+    ports:
+      - "5433:5432"
+    volumes:
+      - audimark-data:/var/lib/postgresql/data
+
+volumes:
+  audimark-data:
