@@ -6,9 +6,10 @@ import { AuthModule } from './auth/auth.module'
 import { UsersModule } from './users/users.module'
 import { SpotifyModule } from './spotify/spotify.module'
 import { ArtistsModule } from './artists/artists.module'
+import { ReviewsModule } from './reviews/reviews.module'
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, SpotifyModule, ArtistsModule],
+  imports: [PrismaModule, AuthModule, UsersModule, SpotifyModule, ArtistsModule, ReviewsModule],
   controllers: [AppController],
   providers: [AppService],
 })

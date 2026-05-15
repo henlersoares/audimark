@@ -58,13 +58,19 @@ export class SpotifyService {
     const token = await this.getAccessToken()
 
     const response = await fetch(
-      `https://api.spotify.com/v1/artists/${spotifyId}/albums?include_groups=album&limit=50`,
+      `https://api.spotify.com/v1/artists/${spotifyId}/albums?include_groups=album`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
     )
 
     const data = await response.json()
+
+    if (!data.items) {
+        this.logger.error('Spotify response:', JSON.stringify(data))
+        return []
+    }
+
     return data.items.map((album: any) => ({
       spotifyId: album.id,
       title: album.name,
@@ -95,4 +101,26 @@ export class SpotifyService {
       externalUrl: data.external_urls.spotify,
     }
   }
+  async getAlbum(spotifyId: string) {
+  const token = await this.getAccessToken()
+
+  const response = await fetch(
+    `https://api.spotify.com/v1/albums/${spotifyId}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  )
+
+  const data = await response.json()
+  return {
+    spotifyId: data.id,
+    title: data.name,
+    coverUrl: data.images?.[0]?.url ?? null,
+    releaseDate: new Date(data.release_date),
+    totalTracks: data.total_tracks,
+    albumType: data.album_type,
+    artistId: data.artists?.[0]?.id,
+  }
+}
+
 }
