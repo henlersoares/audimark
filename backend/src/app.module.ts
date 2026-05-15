@@ -5,9 +5,10 @@ import { PrismaModule } from './prisma/prisma.module'
 import { AuthModule } from './auth/auth.module'
 import { UsersModule } from './users/users.module'
 import { SpotifyModule } from './spotify/spotify.module'
+import { ArtistsModule } from './artists/artists.module'
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, SpotifyModule],
+  imports: [PrismaModule, AuthModule, UsersModule, SpotifyModule, ArtistsModule],
   controllers: [AppController],
   providers: [AppService],
 })
