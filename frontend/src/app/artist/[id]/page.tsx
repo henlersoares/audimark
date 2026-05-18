@@ -71,7 +71,7 @@ export default function ArtistPage() {
     <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
       <Navbar />
 
-      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 80px' }}>
 
         {/* Header do artista */}
         <div style={{ padding: '20px', borderBottom: '0.5px solid #161616' }}>

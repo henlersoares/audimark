@@ -41,7 +41,7 @@ export default function FeedPage() {
     <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
       <Navbar />
 
-      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 80px' }}>
         <div style={{ padding: '10px 20px', borderBottom: '0.5px solid #161616' }}>
           <div style={{
             background: '#141414', border: '0.5px solid #222',

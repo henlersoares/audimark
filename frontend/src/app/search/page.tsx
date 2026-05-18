@@ -36,7 +36,7 @@ export default function SearchPage() {
     <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
       <Navbar />
 
-      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '16px 20px' }}>
+      <div style={{ maxwidth: '700px', margin: '0 auto', padding: '16px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
           <motion.button
             whileTap={{ scale: 0.95 }}
