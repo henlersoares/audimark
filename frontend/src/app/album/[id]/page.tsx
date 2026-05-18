@@ -65,6 +65,8 @@ export default function AlbumPage() {
         qobuz: string | null
         deezer: string | null
     } | null>(null)
+    const [isFavorite, setIsFavorite] = useState(false)
+    const [isWantToListen, setIsWantToListen] = useState(false)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -80,17 +82,53 @@ export default function AlbumPage() {
             setAlbum(albumRes.data)
             setScore(scoreRes.data)
 
-            // Busca streaming separado pra não quebrar a página
             try {
                 const streamingRes = await api.get(`/albums/${id}/streaming`)
                 setStreamingLinks(streamingRes.data)
             } catch {
                 console.log('Links de streaming indisponíveis')
             }
+
+            try {
+                const favRes = await api.get('/favorites')
+                setIsFavorite(favRes.data.some((f: any) => f.albumId === id))
+            } catch {}
+
+            try {
+                const wantRes = await api.get('/favorites/want-to-listen')
+                setIsWantToListen(wantRes.data.some((w: any) => w.albumId === id))
+            } catch {}
+
         } catch {
             console.error('Erro ao carregar álbum')
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleFavorite = async () => {
+        try {
+            if (isFavorite) {
+                await api.delete(`/favorites/${id}`)
+            } else {
+                await api.post(`/favorites/${id}`)
+            }
+            setIsFavorite(!isFavorite)
+        } catch {
+            console.error('Erro ao atualizar favorito')
+        }
+    }
+
+    const handleWantToListen = async () => {
+        try {
+            if (isWantToListen) {
+                await api.delete(`/favorites/want-to-listen/${id}`)
+            } else {
+                await api.post(`/favorites/want-to-listen/${id}`)
+            }
+            setIsWantToListen(!isWantToListen)
+        } catch {
+            console.error('Erro ao atualizar lista')
         }
     }
 
@@ -176,96 +214,64 @@ export default function AlbumPage() {
                     {streamingLinks && (
                         <div style={{ marginTop: '14px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             {streamingLinks.spotify && (
-                                <motion.a
-                                    href={streamingLinks.spotify}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    whileHover={{ opacity: 0.85 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#1DB954', color: '#000', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}
-                                >
+                                <motion.a href={streamingLinks.spotify} target="_blank" rel="noopener noreferrer" whileHover={{ opacity: 0.85 }} whileTap={{ scale: 0.95 }} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#1DB954', color: '#000', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}>
                                     Spotify
                                 </motion.a>
                             )}
                             {streamingLinks.appleMusic && (
-                                <motion.a
-                                    href={streamingLinks.appleMusic}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    whileHover={{ opacity: 0.85 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fc3c44', color: '#fff', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}
-                                >
+                                <motion.a href={streamingLinks.appleMusic} target="_blank" rel="noopener noreferrer" whileHover={{ opacity: 0.85 }} whileTap={{ scale: 0.95 }} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fc3c44', color: '#fff', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}>
                                     Apple Music
                                 </motion.a>
                             )}
                             {streamingLinks.youtubeMusic && (
-                                <motion.a
-                                    href={streamingLinks.youtubeMusic}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    whileHover={{ opacity: 0.85 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#FF0000', color: '#fff', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}
-                                >
+                                <motion.a href={streamingLinks.youtubeMusic} target="_blank" rel="noopener noreferrer" whileHover={{ opacity: 0.85 }} whileTap={{ scale: 0.95 }} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#FF0000', color: '#fff', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}>
                                     YouTube Music
                                 </motion.a>
                             )}
                             {streamingLinks.tidal && (
-                                <motion.a
-                                    href={streamingLinks.tidal}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    whileHover={{ opacity: 0.85 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#000', color: '#fff', border: '0.5px solid #333', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}
-                                >
+                                <motion.a href={streamingLinks.tidal} target="_blank" rel="noopener noreferrer" whileHover={{ opacity: 0.85 }} whileTap={{ scale: 0.95 }} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#000', color: '#fff', border: '0.5px solid #333', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}>
                                     Tidal
                                 </motion.a>
                             )}
                             {streamingLinks.qobuz && (
-                                <motion.a
-                                    href={streamingLinks.qobuz}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    whileHover={{ opacity: 0.85 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#00a0ff', color: '#fff', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}
-                                >
+                                <motion.a href={streamingLinks.qobuz} target="_blank" rel="noopener noreferrer" whileHover={{ opacity: 0.85 }} whileTap={{ scale: 0.95 }} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#00a0ff', color: '#fff', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}>
                                     Qobuz
                                 </motion.a>
                             )}
                             {streamingLinks.deezer && (
-                                <motion.a
-                                    href={streamingLinks.deezer}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    whileHover={{ opacity: 0.85 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#a238ff', color: '#fff', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}
-                                >
+                                <motion.a href={streamingLinks.deezer} target="_blank" rel="noopener noreferrer" whileHover={{ opacity: 0.85 }} whileTap={{ scale: 0.95 }} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#a238ff', color: '#fff', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}>
                                     Deezer
                                 </motion.a>
                             )}
                         </div>
                     )}
+
+                    {/* Botões favorito e quero ouvir */}
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
+                        <motion.button
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={handleFavorite}
+                            style={{ flex: 1, padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: 'none', background: isFavorite ? '#1e3a8a' : '#1a1a1a', color: isFavorite ? '#fff' : '#888', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                        >
+                            ♥ {isFavorite ? 'Favorito' : 'Adicionar aos favoritos'}
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={handleWantToListen}
+                            style={{ flex: 1, padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: 'none', background: isWantToListen ? '#0f766e' : '#1a1a1a', color: isWantToListen ? '#fff' : '#888', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                        >
+                            🎧 {isWantToListen ? 'Na lista' : 'Quero ouvir'}
+                        </motion.button>
+                    </div>
+
                     {/* Botão avaliar */}
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setShowReviewModal(true)}
-                        style={{
-                            marginTop: '14px',
-                            width: '100%',
-                            background: '#1d4ed8',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '8px',
-                            padding: '10px',
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                        }}
+                        style={{ marginTop: '14px', width: '100%', background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
                     >
                         Avaliar este álbum
                     </motion.button>
@@ -275,11 +281,8 @@ export default function AlbumPage() {
                 <div style={{ padding: '20px', borderBottom: '0.5px solid #161616' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
                         <Music size={13} color="#555" />
-                        <span style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                            Faixas
-                        </span>
+                        <span style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Faixas</span>
                     </div>
-
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         {album.tracks.map((track, i) => (
                             <motion.div
@@ -287,22 +290,11 @@ export default function AlbumPage() {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: i * 0.02 }}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '12px',
-                                    padding: '8px 6px',
-                                    borderRadius: '6px',
-                                    cursor: 'default',
-                                }}
-                                whileHover={{ background: '#111' }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 6px', borderRadius: '6px', cursor: 'default' }}
+                                whileHover={{ backgroundColor: '#111111' }}
                             >
-                                <span style={{ fontSize: '12px', color: '#444', width: '20px', textAlign: 'right', flexShrink: 0 }}>
-                                    {track.number}
-                                </span>
-                                <span style={{ fontSize: '13px', color: '#ccc', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                    {track.name}
-                                </span>
+                                <span style={{ fontSize: '12px', color: '#444', width: '20px', textAlign: 'right', flexShrink: 0 }}>{track.number}</span>
+                                <span style={{ fontSize: '13px', color: '#ccc', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.name}</span>
                                 <span style={{ fontSize: '12px', color: '#444', display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                                     <Clock size={11} />
                                     {formatDuration(track.durationMs)}
@@ -315,16 +307,11 @@ export default function AlbumPage() {
                 {/* Reviews */}
                 <div style={{ padding: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-                        <span style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                            Avaliações
-                        </span>
+                        <span style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Avaliações</span>
                         <span style={{ fontSize: '11px', color: '#333' }}>({album.reviews.length})</span>
                     </div>
-
                     {album.reviews.length === 0 ? (
-                        <p style={{ fontSize: '13px', color: '#444', textAlign: 'center', padding: '20px' }}>
-                            Nenhuma avaliação ainda. Seja o primeiro!
-                        </p>
+                        <p style={{ fontSize: '13px', color: '#444', textAlign: 'center', padding: '20px' }}>Nenhuma avaliação ainda. Seja o primeiro!</p>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {album.reviews.map((review) => (
@@ -343,9 +330,7 @@ export default function AlbumPage() {
                                         <TimeAgo date={review.createdAt} />
                                     </div>
                                     {review.content && (
-                                        <p style={{ fontSize: '13px', color: '#777', lineHeight: 1.6, fontStyle: 'italic' }}>
-                                            "{review.content}"
-                                        </p>
+                                        <p style={{ fontSize: '13px', color: '#777', lineHeight: 1.6, fontStyle: 'italic' }}>"{review.content}"</p>
                                     )}
                                 </motion.div>
                             ))}
