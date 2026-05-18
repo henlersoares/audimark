@@ -5,7 +5,7 @@ import { AuthGuard } from '@nestjs/passport'
 @UseGuards(AuthGuard('jwt'))
 @Controller('reviews')
 export class ReviewsController {
-  constructor(private reviewsService: ReviewsService) {}
+  constructor(private reviewsService: ReviewsService) { }
 
   @Post()
   create(@Request() req, @Body() body: { albumId: string; score: number; content?: string; listenedAt?: Date }) {
@@ -35,5 +35,10 @@ export class ReviewsController {
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req) {
     return this.reviewsService.remove(id, req.user.id)
+  }
+
+  @Get('feed')
+  getFeed(@Request() req) {
+    return this.reviewsService.getFeed(req.user.id)
   }
 }

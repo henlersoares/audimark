@@ -7,7 +7,7 @@ export class ReviewsService {
   constructor(
     private prisma: PrismaService,
     private spotify: SpotifyService,
-  ) {}
+  ) { }
 
   async create(userId: string, data: { albumId: string; score: number; content?: string; listenedAt?: Date }) {
     let album = await this.prisma.album.findUnique({ where: { spotifyId: data.albumId } })
@@ -84,5 +84,26 @@ export class ReviewsService {
       average: result._avg.score,
       count: result._count,
     }
+  }
+
+  async getFeed(userId: string) {
+    const follows = await this.prisma.follow.findMany({
+      where: { followerId: userId, followingUserId: { not: null } },
+      select: { followingUserId: true },
+    })
+
+    const followingIds = follows.map(f => f.followingUserId!)
+
+    return this.prisma.review.findMany({
+      where: {
+        userId: { in: [userId, ...followingIds] },
+      },
+      include: {
+        user: { select: { id: true, username: true, avatarUrl: true } },
+        album: { include: { artist: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    })
   }
 }
