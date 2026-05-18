@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, Calendar, Music, Building2, Clock } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import AlbumCover from '@/components/ui/AlbumCover'
+import ReviewModal from '@/components/feed/ReviewModal'
 import ScoreBadge from '@/components/ui/ScoreBadge'
 import Avatar from '@/components/ui/Avatar'
 import TimeAgo from '@/components/ui/TimeAgo'
@@ -54,6 +55,7 @@ export default function AlbumPage() {
     const { id } = useParams<{ id: string }>()
     const router = useRouter()
     const [album, setAlbum] = useState<AlbumDetail | null>(null)
+    const [showReviewModal, setShowReviewModal] = useState(false)
     const [score, setScore] = useState<{ average: number | null; count: number }>({ average: null, count: 0 })
     const [streamingLinks, setStreamingLinks] = useState<{
         spotify: string | null
@@ -251,7 +253,7 @@ export default function AlbumPage() {
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => { }}
+                        onClick={() => setShowReviewModal(true)}
                         style={{
                             marginTop: '14px',
                             width: '100%',
@@ -352,6 +354,13 @@ export default function AlbumPage() {
                 </div>
 
             </div>
+            {showReviewModal && (
+                <ReviewModal
+                    album={album}
+                    onClose={() => setShowReviewModal(false)}
+                    onSuccess={loadAlbum}
+                />
+            )}
         </div>
     )
 }
