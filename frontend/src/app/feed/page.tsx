@@ -27,8 +27,7 @@ export default function FeedPage() {
 
   const loadFeed = async () => {
     try {
-      if (!user) return
-      const res = await api.get(`/reviews/user/${user.id}`)
+      const res = await api.get('/reviews/feed')
       setReviews(res.data)
     } catch {
       console.error('Erro ao carregar feed')

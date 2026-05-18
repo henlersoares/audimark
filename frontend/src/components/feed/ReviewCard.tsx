@@ -36,7 +36,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
         {review.user && <Avatar username={review.user.username} avatarUrl={review.user.avatarUrl} />}
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: '13px', color: '#ccc' }}>
-            <strong style={{ color: '#fff' }}>{review.user?.username}</strong>
+            <strong style={{ color: '#fff' }}>{review.user?.username ?? 'usuário'}</strong>
             <span style={{ color: '#555' }}> avaliou um álbum</span>
           </div>
           <TimeAgo date={review.createdAt} />
