@@ -29,6 +29,7 @@ export class UsersService {
         id: true,
         username: true,
         email: true,
+        name: true,
         createdAt: true,
       },
     })
@@ -45,6 +46,38 @@ export class UsersService {
         id: true,
         username: true,
         email: true,
+        name: true,
+        avatarUrl: true,
+        bio: true,
+        createdAt: true,
+      },
+    })
+  }
+
+  async findByUsername(username: string) {
+    return this.prisma.user.findUnique({
+      where: { username },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        name: true,
+        avatarUrl: true,
+        bio: true,
+        createdAt: true,
+      },
+    })
+  }
+
+  async update(id: string, data: { name?: string; bio?: string; avatarUrl?: string }) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        name: true,
         avatarUrl: true,
         bio: true,
         createdAt: true,

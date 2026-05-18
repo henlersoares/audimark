@@ -11,20 +11,23 @@ model User {
   username     String   @unique
   email        String   @unique
   passwordHash String
+  name         String?
   avatarUrl    String?
   bio          String?
   createdAt    DateTime @default(now())
 
-  reviews      Review[]
-  following    Follow[] @relation("Follower")
-  followers    Follow[] @relation("Following")
+  reviews        Review[]
+  following      Follow[]        @relation("Follower")
+  followers      Follow[]        @relation("Following")
+  favoriteAlbums FavoriteAlbum[]
+  wantToListens  WantToListen[]
 }
 
 model Artist {
-  spotifyId  String   @id
-  name       String
-  imageUrl   String?
-  genres     String[]
+  spotifyId String   @id
+  name      String
+  imageUrl  String?
+  genres    String[]
 
   albums     Album[]
   followedBy Follow[]
@@ -40,9 +43,11 @@ model Album {
   artistId    String
   label       String?
 
-  artist  Artist   @relation(fields: [artistId], references: [spotifyId])
-  reviews Review[]
-  tracks  Track[]
+  artist         Artist          @relation(fields: [artistId], references: [spotifyId])
+  reviews        Review[]
+  tracks         Track[]
+  favoriteAlbums FavoriteAlbum[]
+  wantToListens  WantToListen[]
 }
 
 model Track {
@@ -65,8 +70,34 @@ model Review {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  user  User   @relation(fields: [userId], references: [id])
-  album Album  @relation(fields: [albumId], references: [spotifyId])
+  user  User  @relation(fields: [userId], references: [id])
+  album Album @relation(fields: [albumId], references: [spotifyId])
+
+  @@unique([userId, albumId])
+}
+
+model FavoriteAlbum {
+  id        String   @id @default(uuid())
+  userId    String
+  albumId   String
+  order     Int
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  album Album @relation(fields: [albumId], references: [spotifyId])
+
+  @@unique([userId, albumId])
+  @@unique([userId, order])
+}
+
+model WantToListen {
+  id        String   @id @default(uuid())
+  userId    String
+  albumId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  album Album @relation(fields: [albumId], references: [spotifyId])
 
   @@unique([userId, albumId])
 }
