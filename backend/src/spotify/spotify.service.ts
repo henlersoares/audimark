@@ -130,6 +130,13 @@ export class SpotifyService {
     )
 
     const data = await response.json()
+
+    const tracks = data.tracks?.items?.map((track: any) => ({
+      number: track.track_number,
+      name: track.name,
+      durationMs: track.duration_ms,
+    })) ?? []
+
     return {
       spotifyId: data.id,
       title: data.name,
@@ -138,7 +145,28 @@ export class SpotifyService {
       totalTracks: data.total_tracks,
       albumType: data.album_type,
       artistId: data.artists?.[0]?.id,
+      label: data.label ?? null,
+      tracks,
     }
   }
+  async getStreamingLinks(spotifyId: string) {
+    const spotifyUrl = `https://open.spotify.com/album/${spotifyId}`
 
+    const response = await fetch(
+      `https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(spotifyUrl)}&userCountry=BR`,
+    )
+
+    const data = await response.json()
+
+    const platforms = data.linksByPlatform ?? {}
+
+    return {
+      spotify: platforms.spotify?.url ?? null,
+      appleMusic: platforms.appleMusic?.url ?? null,
+      youtubeMusic: platforms.youtubeMusic?.url ?? null,
+      tidal: platforms.tidal?.url ?? null,
+      qobuz: platforms.qobuz?.url ?? null,
+      deezer: platforms.deezer?.url ?? null,
+    }
+  }
 }

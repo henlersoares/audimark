@@ -8,9 +8,10 @@ import { SpotifyModule } from './spotify/spotify.module'
 import { ArtistsModule } from './artists/artists.module'
 import { ReviewsModule } from './reviews/reviews.module'
 import { FollowsModule } from './follows/follows.module'
+import { AlbumsModule } from './albums/albums.module'
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, SpotifyModule, ArtistsModule, ReviewsModule, FollowsModule],
+  imports: [PrismaModule, AuthModule, UsersModule, SpotifyModule, ArtistsModule, ReviewsModule, FollowsModule, AlbumsModule],
   controllers: [AppController],
   providers: [AppService],
 })

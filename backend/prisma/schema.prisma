@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -26,52 +21,64 @@ model User {
 }
 
 model Artist {
-  spotifyId      String  @id
-  name           String
-  imageUrl       String?
-  genres         String[]
+  spotifyId  String   @id
+  name       String
+  imageUrl   String?
+  genres     String[]
 
-  albums         Album[]
-  followedBy     Follow[]
+  albums     Album[]
+  followedBy Follow[]
 }
 
 model Album {
-  spotifyId    String   @id
-  title        String
-  coverUrl     String
-  releaseDate  DateTime
-  totalTracks  Int
-  albumType    String
-  artistId     String
+  spotifyId   String   @id
+  title       String
+  coverUrl    String
+  releaseDate DateTime
+  totalTracks Int
+  albumType   String
+  artistId    String
+  label       String?
 
-  artist       Artist   @relation(fields: [artistId], references: [spotifyId])
-  reviews      Review[]
+  artist  Artist   @relation(fields: [artistId], references: [spotifyId])
+  reviews Review[]
+  tracks  Track[]
+}
+
+model Track {
+  id         String @id @default(uuid())
+  number     Int
+  name       String
+  durationMs Int
+  albumId    String
+
+  album Album @relation(fields: [albumId], references: [spotifyId])
 }
 
 model Review {
-  id          String   @id @default(uuid())
-  userId      String
-  albumId     String
-  score       Float
-  content     String?
-  listenedAt  DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String    @id @default(uuid())
+  userId     String
+  albumId    String
+  score      Float
+  content    String?
+  listenedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id])
-  album       Album    @relation(fields: [albumId], references: [spotifyId])
+  user  User   @relation(fields: [userId], references: [id])
+  album Album  @relation(fields: [albumId], references: [spotifyId])
 
   @@unique([userId, albumId])
 }
 
 model Follow {
-  id               String   @id @default(uuid())
-  followerId       String
-  followingUserId  String?
+  id                String   @id @default(uuid())
+  followerId        String
+  followingUserId   String?
   followingArtistId String?
-  createdAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
 
-  follower         User     @relation("Follower", fields: [followerId], references: [id])
-  followingUser    User?    @relation("Following", fields: [followingUserId], references: [id])
-  followingArtist  Artist?  @relation(fields: [followingArtistId], references: [spotifyId])
+  follower        User    @relation("Follower", fields: [followerId], references: [id])
+  followingUser   User?   @relation("Following", fields: [followingUserId], references: [id])
+  followingArtist Artist? @relation(fields: [followingArtistId], references: [spotifyId])
 }
