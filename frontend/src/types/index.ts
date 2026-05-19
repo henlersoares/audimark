@@ -48,6 +48,16 @@ export interface Follow {
   followingUser?: Pick<User, 'id' | 'username' | 'avatarUrl'>
 }
 
+export interface User {
+  id: string
+  username: string
+  email: string
+  name?: string
+  avatarUrl?: string
+  bio?: string
+  createdAt: string
+}
+
 export interface AuthResponse {
   user: User
   token: string
