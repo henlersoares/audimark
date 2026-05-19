@@ -33,7 +33,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+    <div style={{ minHeight: '100vh', background: '#1a1a1a' }}>
       <Navbar />
 
       <div style={{ maxwidth: '700px', margin: '0 auto', padding: '16px 20px' }}>

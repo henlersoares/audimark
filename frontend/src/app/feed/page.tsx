@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Search } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import ComposeBar from '@/components/feed/ComposeBar'
 import ReviewCard from '@/components/feed/ReviewCard'
@@ -37,24 +36,9 @@ export default function FeedPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+    <div style={{ minHeight: '100vh', background: '#1a1a1a' }}>
       <Navbar />
-
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 80px' }}>
-        <div style={{ padding: '10px 20px', borderBottom: '0.5px solid #161616' }}>
-          <div style={{
-            background: '#141414', border: '0.5px solid #222',
-            borderRadius: '20px', padding: '8px 14px', fontSize: '12px',
-            color: '#555', display: 'flex', alignItems: 'center', gap: '8px',
-            cursor: 'pointer',
-          }}
-            onClick={() => router.push('/search')}
-          >
-            <Search size={13} color="#444" />
-            Pesquise um artista ou álbum
-          </div>
-        </div>
-
         <ComposeBar />
 
         {loading ? (

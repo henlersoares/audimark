@@ -52,7 +52,7 @@ export default function ArtistPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+      <div style={{ minHeight: '100vh', background: '#1a1a1a' }}>
         <Navbar />
         <motion.div
           animate={{ opacity: [0.3, 1, 0.3] }}
@@ -68,7 +68,7 @@ export default function ArtistPage() {
   if (!artist) return null
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+    <div style={{ minHeight: '100vh', background: '#1a1a1a' }}>
       <Navbar />
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 80px' }}>

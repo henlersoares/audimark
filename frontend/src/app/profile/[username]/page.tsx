@@ -62,7 +62,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+      <div style={{ minHeight: '100vh', background: '#1a1a1a' }}>
         <Navbar />
         <motion.div
           animate={{ opacity: [0.3, 1, 0.3] }}
@@ -78,7 +78,7 @@ export default function ProfilePage() {
   if (!profile) return null
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+    <div style={{ minHeight: '100vh', background: '#1a1a1a' }}>
       <Navbar />
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 80px' }}>
@@ -212,7 +212,7 @@ export default function ProfilePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     onClick={() => router.push(`/album/${review.albumId}`)}
-                    style={{ background: '#111', border: '0.5px solid #1a1a1a', borderRadius: '8px', padding: '12px', display: 'flex', gap: '12px', cursor: 'pointer' }}
+                    style={{ background: '#202020', border: '0.5px solid #1a1a1a', borderRadius: '8px', padding: '12px', display: 'flex', gap: '12px', cursor: 'pointer' }}
                     whileHover={{ borderColor: '#2a2a2a' }}
                   >
                     <AlbumCover coverUrl={review.album?.coverUrl} title={review.album?.title ?? ''} size={52} borderRadius={4} />

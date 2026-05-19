@@ -31,7 +31,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+    <div style={{ minHeight: '100vh', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -51,7 +51,7 @@ export default function LoginPage() {
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
-            style={{ background: '#111', border: '0.5px solid #222', borderRadius: '8px', padding: '12px 14px', fontSize: '14px', color: '#fff', outline: 'none', width: '100%' }}
+            style={{ background: '#202020', border: '0.5px solid #222', borderRadius: '8px', padding: '12px 14px', fontSize: '14px', color: '#fff', outline: 'none', width: '100%' }}
           />
           <input
             type="password"
@@ -59,7 +59,7 @@ export default function LoginPage() {
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
-            style={{ background: '#111', border: '0.5px solid #222', borderRadius: '8px', padding: '12px 14px', fontSize: '14px', color: '#fff', outline: 'none', width: '100%' }}
+            style={{ background: '#202020', border: '0.5px solid #222', borderRadius: '8px', padding: '12px 14px', fontSize: '14px', color: '#fff', outline: 'none', width: '100%' }}
           />
 
           {error && <p style={{ fontSize: '13px', color: '#f43f5e', textAlign: 'center' }}>{error}</p>}

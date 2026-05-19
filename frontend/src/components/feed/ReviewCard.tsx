@@ -50,7 +50,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
       <motion.div
         whileHover={{ scale: 1.005 }}
         style={{
-          display: 'flex', gap: '12px', background: '#111',
+          display: 'flex', gap: '12px', background: '#202020',
           border: '0.5px solid #1a1a1a', borderRadius: '8px',
           padding: '12px', marginBottom: '12px',
           transition: 'border-color 0.2s',

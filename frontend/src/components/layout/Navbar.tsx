@@ -22,7 +22,7 @@ export default function Navbar() {
       style={{
         background: '#0d0d0d',
         borderBottom: '0.5px solid #1f1f1f',
-        padding: '0 24px',
+        padding: '0 80px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -30,9 +30,10 @@ export default function Navbar() {
         position: 'sticky',
         top: 0,
         zIndex: 100,
+        gap: '24px',
       }}
     >
-      <Link href="/feed" style={{ textDecoration: 'none' }}>
+      <Link href="/feed" style={{ textDecoration: 'none', flexShrink: 0 }}>
         <span style={{
           fontSize: '18px',
           fontWeight: 700,
@@ -44,13 +45,29 @@ export default function Navbar() {
         </span>
       </Link>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <Link href="/search">
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-            <Search size={18} color="#555" style={{ cursor: 'pointer' }} />
-          </motion.div>
-        </Link>
+      {/* Barra de pesquisa centralizada */}
+      <div
+        onClick={() => router.push('/search')}
+        style={{
+          flex: 1,
+          maxWidth: '480px',
+          background: '#141414',
+          border: '0.5px solid #2a2a2a',
+          borderRadius: '20px',
+          padding: '7px 14px',
+          fontSize: '13px',
+          color: '#555',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: 'pointer',
+        }}
+      >
+        <Search size={13} color="#444" />
+        Pesquise um artista ou álbum
+      </div>
 
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexShrink: 0 }}>
         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
           <Bell size={18} color="#555" style={{ cursor: 'pointer' }} />
         </motion.div>

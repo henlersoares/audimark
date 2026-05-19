@@ -84,7 +84,7 @@ export default function ReviewModal({ album, onClose, onSuccess }: ReviewModalPr
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           onClick={e => e.stopPropagation()}
           style={{
-            background: '#111', border: '0.5px solid #222',
+            background: '#202020', border: '0.5px solid #222',
             borderRadius: '12px', padding: '24px',
             width: '100%', maxWidth: '420px',
           }}
@@ -104,7 +104,7 @@ export default function ReviewModal({ album, onClose, onSuccess }: ReviewModalPr
           </div>
 
           {/* Álbum info */}
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '20px', background: '#0a0a0a', borderRadius: '8px', padding: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '20px', background: '#1a1a1a', borderRadius: '8px', padding: '12px' }}>
             <AlbumCover coverUrl={album.coverUrl} title={album.title} size={48} borderRadius={4} />
             <div>
               <div style={{ fontSize: '14px', color: '#fff', fontWeight: 500 }}>{album.title}</div>
@@ -155,7 +155,7 @@ export default function ReviewModal({ album, onClose, onSuccess }: ReviewModalPr
               onChange={e => setContent(e.target.value)}
               rows={4}
               style={{
-                width: '100%', background: '#0a0a0a',
+                width: '100%', background: '#1a1a1a',
                 border: '0.5px solid #222', borderRadius: '8px',
                 padding: '10px 12px', fontSize: '13px',
                 color: '#e8e8e8', resize: 'vertical',

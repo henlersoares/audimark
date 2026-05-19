@@ -134,7 +134,7 @@ export default function AlbumPage() {
 
     if (loading) {
         return (
-            <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+            <div style={{ minHeight: '100vh', background: '#1a1a1a' }}>
                 <Navbar />
                 <motion.div
                     animate={{ opacity: [0.3, 1, 0.3] }}
@@ -153,7 +153,7 @@ export default function AlbumPage() {
     const totalMinutes = Math.floor(totalDurationMs / 60000)
 
     return (
-        <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+        <div style={{ minHeight: '100vh', background: '#1a1a1a' }}>
             <Navbar />
 
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 80px' }}>
@@ -319,7 +319,7 @@ export default function AlbumPage() {
                                     key={review.id}
                                     initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    style={{ background: '#111', border: '0.5px solid #1a1a1a', borderRadius: '8px', padding: '12px' }}
+                                    style={{ background: '#202020', border: '0.5px solid #1a1a1a', borderRadius: '8px', padding: '12px' }}
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                         <Avatar username={review.user.username} avatarUrl={review.user.avatarUrl} size={28} />
