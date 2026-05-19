@@ -10,9 +10,11 @@ import { ReviewsModule } from './reviews/reviews.module'
 import { FollowsModule } from './follows/follows.module'
 import { AlbumsModule } from './albums/albums.module'
 import { FavoritesModule } from './favorites/favorites.module'
+import { LikesModule } from './likes/likes.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, SpotifyModule, ArtistsModule, ReviewsModule, FollowsModule, AlbumsModule, FavoritesModule],
+  imports: [PrismaModule, AuthModule, UsersModule, SpotifyModule, ArtistsModule, ReviewsModule, FollowsModule, AlbumsModule, FavoritesModule, LikesModule, CommentsModule],
   controllers: [AppController],
   providers: [AppService],
 })
