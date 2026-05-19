@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Calendar, Music, Users, Edit2 } from 'lucide-react'
+import { Calendar, Music, Users, Edit2 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Avatar from '@/components/ui/Avatar'
 import ScoreBadge from '@/components/ui/ScoreBadge'
@@ -28,6 +28,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [reviews, setReviews] = useState<any[]>([])
   const [followingArtists, setFollowingArtists] = useState<any[]>([])
+  const [favorites, setFavorites] = useState<any[]>([])
+  const [wantToListen, setWantToListen] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const isOwner = user?.username === username
 
@@ -40,13 +42,17 @@ export default function ProfilePage() {
       const profileRes = await api.get(`/users/${username}`)
       setProfile(profileRes.data)
 
-      const [reviewsRes, artistsRes] = await Promise.all([
+      const [reviewsRes, artistsRes, favRes, wantRes] = await Promise.all([
         api.get(`/reviews/user/${profileRes.data.id}`),
         api.get('/follows/artists'),
+        api.get('/favorites'),
+        api.get('/favorites/want-to-listen'),
       ])
 
       setReviews(reviewsRes.data)
       setFollowingArtists(artistsRes.data)
+      setFavorites(favRes.data)
+      setWantToListen(wantRes.data)
     } catch {
       console.error('Erro ao carregar perfil')
     } finally {
@@ -71,20 +77,15 @@ export default function ProfilePage() {
 
   if (!profile) return null
 
-  const avgScore = reviews.length > 0
-    ? reviews.reduce((acc, r) => acc + r.score, 0) / reviews.length
-    : null
-
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
       <Navbar />
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 80px' }}>
 
-        {/* Header do perfil */}
+        {/* Header */}
         <div style={{ padding: '32px 0 24px', borderBottom: '0.5px solid #161616', display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
           <Avatar username={profile.username} avatarUrl={profile.avatarUrl} size={80} />
-
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
               <h1 style={{ fontSize: '22px', fontFamily: 'Playfair Display, serif', color: '#fff' }}>
@@ -116,17 +117,81 @@ export default function ProfilePage() {
                 <Users size={12} />
                 <strong style={{ color: '#ccc' }}>{followingArtists.length}</strong> artistas seguidos
               </div>
-              {avgScore !== null && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#555' }}>
-                  Média: <ScoreBadge score={avgScore} size="sm" />
-                </div>
-              )}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#555' }}>
                 <Calendar size={12} />
                 membro desde {new Date(profile.createdAt).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Álbuns favoritos */}
+        <div style={{ padding: '24px 0', borderBottom: '0.5px solid #161616' }}>
+          <div style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '16px' }}>
+            Álbuns favoritos
+          </div>
+          {favorites.length === 0 ? (
+            <p style={{ fontSize: '13px', color: '#333' }}>
+              {isOwner ? 'Adicione seus álbuns favoritos na página do álbum.' : 'Nenhum álbum favorito ainda.'}
+            </p>
+          ) : (
+            <div style={{ display: 'flex', gap: '12px' }}>
+              {favorites.map((fav) => (
+                <motion.div
+                  key={fav.id}
+                  whileHover={{ scale: 1.04 }}
+                  onClick={() => router.push(`/album/${fav.albumId}`)}
+                  style={{ cursor: 'pointer', width: '120px' }}
+                >
+                  <AlbumCover coverUrl={fav.album?.coverUrl} title={fav.album?.title ?? ''} size="100%" borderRadius={6} />
+                  <div style={{ marginTop: '6px' }}>
+                    <div style={{ fontSize: '12px', color: '#ccc', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {fav.album?.title}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#555' }}>{fav.album?.artist?.name}</div>
+                  </div>
+                </motion.div>
+              ))}
+              {isOwner && favorites.length < 5 && (
+                <div style={{ width: '120px', aspectRatio: '1/1', border: '0.5px dashed #333', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#444', fontSize: '24px' }}
+                  onClick={() => router.push('/search')}
+                >
+                  +
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Quero ouvir */}
+        <div style={{ padding: '24px 0', borderBottom: '0.5px solid #161616' }}>
+          <div style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '16px' }}>
+            Quero ouvir
+          </div>
+          {wantToListen.length === 0 ? (
+            <p style={{ fontSize: '13px', color: '#333' }}>
+              {isOwner ? 'Adicione álbuns que quer ouvir na página do álbum.' : 'Nenhum álbum na lista ainda.'}
+            </p>
+          ) : (
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              {wantToListen.map((item) => (
+                <motion.div
+                  key={item.id}
+                  whileHover={{ scale: 1.04 }}
+                  onClick={() => router.push(`/album/${item.albumId}`)}
+                  style={{ cursor: 'pointer', width: '100px' }}
+                >
+                  <AlbumCover coverUrl={item.album?.coverUrl} title={item.album?.title ?? ''} size="100%" borderRadius={6} />
+                  <div style={{ marginTop: '6px' }}>
+                    <div style={{ fontSize: '11px', color: '#ccc', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {item.album?.title}
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#555' }}>{item.album?.artist?.name}</div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '32px', paddingTop: '24px' }}>
@@ -137,9 +202,7 @@ export default function ProfilePage() {
               Avaliações recentes
             </div>
             {reviews.length === 0 ? (
-              <p style={{ fontSize: '13px', color: '#444', textAlign: 'center', padding: '40px' }}>
-                Nenhuma avaliação ainda.
-              </p>
+              <p style={{ fontSize: '13px', color: '#444', textAlign: 'center', padding: '40px' }}>Nenhuma avaliação ainda.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {reviews.map((review, i) => (
@@ -159,9 +222,7 @@ export default function ProfilePage() {
                           <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {review.album?.title}
                           </div>
-                          <div style={{ fontSize: '11px', color: '#555' }}>
-                            {review.album?.artist?.name}
-                          </div>
+                          <div style={{ fontSize: '11px', color: '#555' }}>{review.album?.artist?.name}</div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                           <ScoreBadge score={review.score} size="sm" />
@@ -180,7 +241,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Sidebar — artistas seguidos */}
+          {/* Sidebar artistas */}
           <div>
             <div style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '16px' }}>
               Artistas seguidos
@@ -196,12 +257,7 @@ export default function ProfilePage() {
                     onClick={() => router.push(`/artist/${follow.followingArtist?.spotifyId}`)}
                     style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
                   >
-                    <AlbumCover
-                      coverUrl={follow.followingArtist?.imageUrl}
-                      title={follow.followingArtist?.name ?? ''}
-                      size={36}
-                      borderRadius={18}
-                    />
+                    <AlbumCover coverUrl={follow.followingArtist?.imageUrl} title={follow.followingArtist?.name ?? ''} size={36} borderRadius={18} />
                     <span style={{ fontSize: '13px', color: '#ccc' }}>{follow.followingArtist?.name}</span>
                   </motion.div>
                 ))}
