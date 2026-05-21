@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { Heart, MessageCircle, Share2, ChevronDown, ChevronUp, Send, CornerDownRight } from 'lucide-react'
+import { Heart, MessageCircle, Share2, ChevronDown, ChevronUp, Send, CornerDownRight, Trash2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Review } from '@/types'
 import ScoreBadge from '@/components/ui/ScoreBadge'
@@ -57,11 +57,21 @@ export default function ReviewCard({ review }: ReviewCardProps) {
   const [loadingComments, setLoadingComments] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
+  const [commentCount, setCommentCount] = useState(0)
+
   const isLong = (review.content?.length ?? 0) > 150
 
   useEffect(() => {
     loadLikeStatus()
+    loadCommentCount()
   }, [])
+
+  const loadCommentCount = async () => {
+    try {
+      const res = await api.get(`/comments/reviews/${review.id}`)
+      setCommentCount(res.data.length)
+    } catch { }
+  }
 
   const loadLikeStatus = async () => {
     try {
@@ -104,6 +114,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
       })
       setNewComment('')
       setReplyTo(null)
+      setCommentCount(prev => prev + 1)
       loadComments()
     } catch { }
     setSubmitting(false)
@@ -224,7 +235,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
           onClick={handleToggleComments}
           style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: showComments ? '#60a5fa' : '#555', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
-          <MessageCircle size={16} /> {comments.length}
+          <MessageCircle size={16} /> {showComments ? comments.length : commentCount}
         </button>
 
         <button style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#555', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -283,6 +294,19 @@ export default function ReviewCard({ review }: ReviewCardProps) {
                           >
                             <CornerDownRight size={12} /> responder
                           </button>
+
+                          {comment.user.id === user?.id && (
+                            <button
+                              onClick={async () => {
+                                await api.delete(`/comments/${comment.id}`)
+                                setCommentCount(prev => prev - 1)
+                                loadComments()
+                              }}
+                              style={{ fontSize: '11px', color: '#444', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px', padding: 0, marginLeft: 'auto' }}
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -300,21 +324,36 @@ export default function ReviewCard({ review }: ReviewCardProps) {
                                 </span>
                                 <TimeAgo date={reply.createdAt} />
                               </div>
-                              <div style={{ fontSize: '12px', color: '#888', lineHeight: 1.5 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', fontSize: '12px', color: '#888', lineHeight: 1.5 }}>
                                 {parseContent(reply.content, router)}
                               </div>
-                              <button
-                                onClick={() => handleLikeComment(reply.id)}
-                                style={{
-                                  fontSize: '11px',
-                                  color: reply.likes.some((l: any) => l.userId === user?.id) ? '#f43f5e' : '#555',
-                                  background: 'none', border: 'none', cursor: 'pointer',
-                                  display: 'flex', alignItems: 'center', gap: '3px', padding: 0, marginTop: '4px'
-                                }}
-                              >
-                                <Heart size={11} fill={reply.likes.some((l: any) => l.userId === user?.id) ? '#f43f5e' : 'none'} />
-                                {reply.likes.length}
-                              </button>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+                                <button
+                                  onClick={() => handleLikeComment(reply.id)}
+                                  style={{
+                                    fontSize: '11px',
+                                    color: reply.likes.some((l: any) => l.userId === user?.id) ? '#f43f5e' : '#555',
+                                    background: 'none', border: 'none', cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: '3px', padding: 0
+                                  }}
+                                >
+                                  <Heart size={11} fill={reply.likes.some((l: any) => l.userId === user?.id) ? '#f43f5e' : 'none'} />
+                                  {reply.likes.length}
+                                </button>
+
+                                {reply.user.id === user?.id && (
+                                  <button
+                                    onClick={async () => {
+                                      await api.delete(`/comments/${reply.id}`)
+                                      setCommentCount(prev => prev - 1)
+                                      loadComments()
+                                    }}
+                                    style={{ fontSize: '11px', color: '#444', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}

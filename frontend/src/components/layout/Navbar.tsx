@@ -1,7 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Bell, Search, User } from 'lucide-react'
+import NotificationsDropdown from '@/components/layout/NotificationsDropdown'
+import { Search, User } from 'lucide-react'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/auth.store'
 import { useRouter } from 'next/navigation'
@@ -68,9 +69,7 @@ export default function Navbar() {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexShrink: 0 }}>
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-          <Bell size={18} color="#555" style={{ cursor: 'pointer' }} />
-        </motion.div>
+        <NotificationsDropdown />
 
         <Link href={`/profile/${user?.username}`}>
           <motion.div

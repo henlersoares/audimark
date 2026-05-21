@@ -28,6 +28,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [reviews, setReviews] = useState<any[]>([])
   const [followingArtists, setFollowingArtists] = useState<any[]>([])
+  const [isFollowing, setIsFollowing] = useState(false)
   const [favorites, setFavorites] = useState<any[]>([])
   const [wantToListen, setWantToListen] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,11 +54,27 @@ export default function ProfilePage() {
       setFollowingArtists(artistsRes.data)
       setFavorites(favRes.data)
       setWantToListen(wantRes.data)
+
+      try {
+        const followRes = await api.get('/follows/users')
+        setIsFollowing(followRes.data.some((f: any) => f.followingUser?.id === profileRes.data.id))
+      } catch {}
     } catch {
       console.error('Erro ao carregar perfil')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleFollow = async () => {
+    try {
+      if (isFollowing) {
+        await api.delete(`/follows/users/${profile?.id}`)
+      } else {
+        await api.post(`/follows/users/${profile?.id}`)
+      }
+      setIsFollowing(!isFollowing)
+    } catch {}
   }
 
   if (loading) {
@@ -91,7 +108,7 @@ export default function ProfilePage() {
               <h1 style={{ fontSize: '22px', fontFamily: 'Playfair Display, serif', color: '#fff' }}>
                 {profile.name ?? profile.username}
               </h1>
-              {isOwner && (
+              {isOwner ? (
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -99,6 +116,23 @@ export default function ProfilePage() {
                   style={{ background: 'transparent', border: '0.5px solid #333', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', color: '#888', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                 >
                   <Edit2 size={11} /> Editar perfil
+                </motion.button>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleFollow}
+                  style={{
+                    background: isFollowing ? 'transparent' : '#1d4ed8',
+                    color: isFollowing ? '#60a5fa' : '#fff',
+                    border: isFollowing ? '0.5px solid #1d4ed844' : 'none',
+                    borderRadius: '6px', padding: '6px 16px',
+                    fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                  }}
+                >
+                  <Users size={13} />
+                  {isFollowing ? 'Seguindo' : 'Seguir'}
                 </motion.button>
               )}
             </div>
@@ -153,7 +187,8 @@ export default function ProfilePage() {
                 </motion.div>
               ))}
               {isOwner && favorites.length < 5 && (
-                <div style={{ width: '120px', aspectRatio: '1/1', border: '0.5px dashed #333', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#444', fontSize: '24px' }}
+                <div
+                  style={{ width: '120px', aspectRatio: '1/1', border: '0.5px dashed #333', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#444', fontSize: '24px' }}
                   onClick={() => router.push('/search')}
                 >
                   +
