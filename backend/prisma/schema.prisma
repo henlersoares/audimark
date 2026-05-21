@@ -25,6 +25,7 @@ model User {
   likes          Like[]
   comments       Comment[]
   commentLikes   CommentLike[]
+  notifications  Notification[]
 }
 
 model Artist {
@@ -155,4 +156,16 @@ model CommentLike {
   comment Comment @relation(fields: [commentId], references: [id])
 
   @@unique([userId, commentId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }

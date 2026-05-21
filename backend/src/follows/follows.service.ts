@@ -1,9 +1,13 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
+import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
 export class FollowsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) { }
 
   async followArtist(followerId: string, artistId: string) {
     const existing = await this.prisma.follow.findFirst({
@@ -36,9 +40,19 @@ export class FollowsService {
 
     if (existing) throw new BadRequestException('Já está seguindo esse usuário')
 
-    return this.prisma.follow.create({
+    const follow = await this.prisma.follow.create({
       data: { followerId, followingUserId: userId },
     })
+
+    const follower = await this.prisma.user.findUnique({ where: { id: followerId } })
+    await this.notifications.create({
+      userId,
+      type: 'new_follower',
+      message: `@${follower?.username} começou a seguir você`,
+      link: `/profile/${follower?.username}`,
+    })
+
+    return follow
   }
 
   async unfollowUser(followerId: string, userId: string) {

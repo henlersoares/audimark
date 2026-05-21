@@ -14,14 +14,10 @@ export class ArtistsService {
 
     const artists = await Promise.all(
       spotifyResults.map(async (artist: any) => {
-        const existing = await this.prisma.artist.findUnique({
+        return this.prisma.artist.upsert({
           where: { spotifyId: artist.spotifyId },
-        })
-
-        if (existing) return existing
-
-        return this.prisma.artist.create({
-          data: {
+          update: {},
+          create: {
             spotifyId: artist.spotifyId,
             name: artist.name,
             imageUrl: artist.imageUrl,

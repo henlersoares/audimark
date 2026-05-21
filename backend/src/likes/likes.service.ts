@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
+import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
 export class LikesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async likeReview(userId: string, reviewId: string) {
     const existing = await this.prisma.like.findUnique({
@@ -18,6 +22,22 @@ export class LikesService {
     }
 
     await this.prisma.like.create({ data: { userId, reviewId } })
+
+    const review = await this.prisma.review.findUnique({
+      where: { id: reviewId },
+      include: { album: true, user: true },
+    })
+
+    if (review && review.userId !== userId) {
+      const liker = await this.prisma.user.findUnique({ where: { id: userId } })
+      await this.notifications.create({
+        userId: review.userId,
+        type: 'like_review',
+        message: `@${liker?.username} curtiu sua avaliação de ${review.album.title}`,
+        link: `/album/${review.albumId}`,
+      })
+    }
+
     return { liked: true }
   }
 

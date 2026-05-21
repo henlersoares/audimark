@@ -12,9 +12,10 @@ import { AlbumsModule } from './albums/albums.module'
 import { FavoritesModule } from './favorites/favorites.module'
 import { LikesModule } from './likes/likes.module';
 import { CommentsModule } from './comments/comments.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, SpotifyModule, ArtistsModule, ReviewsModule, FollowsModule, AlbumsModule, FavoritesModule, LikesModule, CommentsModule],
+  imports: [PrismaModule, AuthModule, UsersModule, SpotifyModule, ArtistsModule, ReviewsModule, FollowsModule, AlbumsModule, FavoritesModule, LikesModule, CommentsModule, NotificationsModule],
   controllers: [AppController],
   providers: [AppService],
 })

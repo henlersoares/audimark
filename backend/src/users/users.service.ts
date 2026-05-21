@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt'
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(data: { username: string; email: string; password: string }) {
     const existing = await this.prisma.user.findFirst({
@@ -66,6 +66,24 @@ export class UsersService {
         bio: true,
         createdAt: true,
       },
+    })
+  }
+
+  async search(query: string) {
+    return this.prisma.user.findMany({
+      where: {
+        OR: [
+          { username: { contains: query, mode: 'insensitive' } },
+          { name: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        avatarUrl: true,
+      },
+      take: 10,
     })
   }
 
