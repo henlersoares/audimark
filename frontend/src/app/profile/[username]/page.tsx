@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Calendar, Music, Users, Edit2, LayoutGrid, List, ChevronDown } from 'lucide-react'
+import { Calendar, Music, Users, Edit2, LayoutGrid, List, ChevronDown, X } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Avatar from '@/components/ui/Avatar'
 import ScoreBadge from '@/components/ui/ScoreBadge'
 import AlbumCover from '@/components/ui/AlbumCover'
 import TimeAgo from '@/components/ui/TimeAgo'
+import AddAlbumModal from '@/components/ui/AddAlbumModal'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/auth.store'
 
@@ -31,6 +32,8 @@ export default function ProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false)
   const [favorites, setFavorites] = useState<any[]>([])
   const [wantToListen, setWantToListen] = useState<any[]>([])
+  const [showAddFavorite, setShowAddFavorite] = useState(false)
+  const [showAddWantToListen, setShowAddWantToListen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const [sortOrder, setSortOrder] = useState<'recent' | 'high' | 'low'>('recent')
@@ -60,7 +63,7 @@ export default function ProfilePage() {
       try {
         const followRes = await api.get('/follows/users')
         setIsFollowing(followRes.data.some((f: any) => f.followingUser?.id === profileRes.data.id))
-      } catch {}
+      } catch { }
     } catch {
       console.error('Erro ao carregar perfil')
     } finally {
@@ -76,7 +79,28 @@ export default function ProfilePage() {
         await api.post(`/follows/users/${profile?.id}`)
       }
       setIsFollowing(!isFollowing)
-    } catch {}
+    } catch { }
+  }
+
+  const handleAddFavorite = async (album: any) => {
+    try {
+      // Garante que o álbum existe no banco acessando a página dele
+      await api.get(`/albums/${album.spotifyId}`)
+      await api.post(`/favorites/${album.spotifyId}`)
+      loadProfile()
+    } catch {
+      console.error('Erro ao adicionar favorito')
+    }
+  }
+
+  const handleAddWantToListen = async (album: any) => {
+    try {
+      await api.get(`/albums/${album.spotifyId}`)
+      await api.post(`/favorites/want-to-listen/${album.spotifyId}`)
+      loadProfile()
+    } catch {
+      console.error('Erro ao adicionar à lista')
+    }
   }
 
   const sortedReviews = [...reviews].sort((a, b) => {
@@ -172,38 +196,51 @@ export default function ProfilePage() {
           <div style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '16px' }}>
             Álbuns favoritos
           </div>
-          {favorites.length === 0 ? (
-            <p style={{ fontSize: '13px', color: '#333' }}>
-              {isOwner ? 'Adicione seus álbuns favoritos na página do álbum.' : 'Nenhum álbum favorito ainda.'}
-            </p>
-          ) : (
-            <div style={{ display: 'flex', gap: '12px' }}>
-              {favorites.map((fav) => (
-                <motion.div
-                  key={fav.id}
-                  whileHover={{ scale: 1.04 }}
-                  onClick={() => router.push(`/album/${fav.albumId}`)}
-                  style={{ cursor: 'pointer', width: '120px' }}
-                >
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            {favorites.map((fav) => (
+              <div
+                key={fav.id}
+                style={{ cursor: 'pointer', width: '120px', position: 'relative' }}
+                onMouseEnter={e => { const btn = e.currentTarget.querySelector('.delete-btn') as HTMLElement; if (btn) btn.style.opacity = '1' }}
+                onMouseLeave={e => { const btn = e.currentTarget.querySelector('.delete-btn') as HTMLElement; if (btn) btn.style.opacity = '0' }}
+              >
+                <div onClick={() => router.push(`/album/${fav.albumId}`)}>
                   <AlbumCover coverUrl={fav.album?.coverUrl} title={fav.album?.title ?? ''} size="100%" borderRadius={6} />
-                  <div style={{ marginTop: '6px' }}>
-                    <div style={{ fontSize: '12px', color: '#ccc', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {fav.album?.title}
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#555' }}>{fav.album?.artist?.name}</div>
-                  </div>
-                </motion.div>
-              ))}
-              {isOwner && favorites.length < 5 && (
-                <div
-                  style={{ width: '120px', aspectRatio: '1/1', border: '0.5px dashed #333', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#444', fontSize: '24px' }}
-                  onClick={() => router.push('/search')}
-                >
-                  +
                 </div>
-              )}
-            </div>
-          )}
+                {isOwner && (
+                  <button
+                    className="delete-btn"
+                    onClick={async (e) => {
+                      e.stopPropagation()
+                      await api.delete(`/favorites/${fav.albumId}`)
+                      loadProfile()
+                    }}
+                    style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', opacity: 0, transition: 'opacity 0.15s' }}
+                  >
+                    <X size={11} />
+                  </button>
+                )}
+                <div style={{ marginTop: '6px' }}>
+                  <div style={{ fontSize: '12px', color: '#ccc', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {fav.album?.title}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#555' }}>{fav.album?.artist?.name}</div>
+                </div>
+              </div>
+            ))}
+            {isOwner && favorites.length < 5 && (
+              <motion.div
+                whileHover={{ scale: 1.04 }}
+                onClick={() => setShowAddFavorite(true)}
+                style={{ width: '120px', aspectRatio: '1/1', border: '0.5px dashed #333', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#444', fontSize: '24px' }}
+              >
+                +
+              </motion.div>
+            )}
+            {!isOwner && favorites.length === 0 && (
+              <p style={{ fontSize: '13px', color: '#333' }}>Nenhum álbum favorito ainda.</p>
+            )}
+          </div>
         </div>
 
         {/* Quero ouvir */}
@@ -211,30 +248,51 @@ export default function ProfilePage() {
           <div style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '16px' }}>
             Quero ouvir
           </div>
-          {wantToListen.length === 0 ? (
-            <p style={{ fontSize: '13px', color: '#333' }}>
-              {isOwner ? 'Adicione álbuns que quer ouvir na página do álbum.' : 'Nenhum álbum na lista ainda.'}
-            </p>
-          ) : (
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              {wantToListen.map((item) => (
-                <motion.div
-                  key={item.id}
-                  whileHover={{ scale: 1.04 }}
-                  onClick={() => router.push(`/album/${item.albumId}`)}
-                  style={{ cursor: 'pointer', width: '100px' }}
-                >
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            {wantToListen.map((item) => (
+              <div
+                key={item.id}
+                style={{ cursor: 'pointer', width: '100px', position: 'relative' }}
+                onMouseEnter={e => { const btn = e.currentTarget.querySelector('.delete-btn') as HTMLElement; if (btn) btn.style.opacity = '1' }}
+                onMouseLeave={e => { const btn = e.currentTarget.querySelector('.delete-btn') as HTMLElement; if (btn) btn.style.opacity = '0' }}
+              >
+                <div onClick={() => router.push(`/album/${item.albumId}`)}>
                   <AlbumCover coverUrl={item.album?.coverUrl} title={item.album?.title ?? ''} size="100%" borderRadius={6} />
-                  <div style={{ marginTop: '6px' }}>
-                    <div style={{ fontSize: '11px', color: '#ccc', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {item.album?.title}
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#555' }}>{item.album?.artist?.name}</div>
+                </div>
+                {isOwner && (
+                  <button
+                    className="delete-btn"
+                    onClick={async (e) => {
+                      e.stopPropagation()
+                      await api.delete(`/favorites/want-to-listen/${item.albumId}`)
+                      loadProfile()
+                    }}
+                    style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', opacity: 0, transition: 'opacity 0.15s' }}
+                  >
+                    <X size={11} />
+                  </button>
+                )}
+                <div style={{ marginTop: '6px' }}>
+                  <div style={{ fontSize: '11px', color: '#ccc', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {item.album?.title}
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
+                  <div style={{ fontSize: '10px', color: '#555' }}>{item.album?.artist?.name}</div>
+                </div>
+              </div>
+            ))}
+            {isOwner && (
+              <motion.div
+                whileHover={{ scale: 1.04 }}
+                onClick={() => setShowAddWantToListen(true)}
+                style={{ width: '100px', aspectRatio: '1/1', border: '0.5px dashed #333', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#444', fontSize: '24px' }}
+              >
+                +
+              </motion.div>
+            )}
+            {!isOwner && wantToListen.length === 0 && (
+              <p style={{ fontSize: '13px', color: '#333' }}>Nenhum álbum na lista ainda.</p>
+            )}
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '32px', paddingTop: '24px' }}>
@@ -388,6 +446,22 @@ export default function ProfilePage() {
 
         </div>
       </div>
+
+      {showAddFavorite && (
+        <AddAlbumModal
+          title="Adicionar aos favoritos"
+          onClose={() => setShowAddFavorite(false)}
+          onSelect={handleAddFavorite}
+        />
+      )}
+
+      {showAddWantToListen && (
+        <AddAlbumModal
+          title="Adicionar à lista"
+          onClose={() => setShowAddWantToListen(false)}
+          onSelect={handleAddWantToListen}
+        />
+      )}
     </div>
   )
 }
