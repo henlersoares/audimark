@@ -14,7 +14,42 @@ export class ReviewsService {
 
     if (!album) {
       const spotifyAlbum = await this.spotify.getAlbum(data.albumId)
-      album = await this.prisma.album.create({ data: spotifyAlbum })
+
+      // Garante que o artista existe
+      let artist = await this.prisma.artist.findUnique({ where: { spotifyId: spotifyAlbum.artistId } })
+      if (!artist) {
+        const spotifyArtist = await this.spotify.getArtist(spotifyAlbum.artistId)
+        artist = await this.prisma.artist.upsert({
+          where: { spotifyId: spotifyArtist.spotifyId },
+          update: {},
+          create: {
+            spotifyId: spotifyArtist.spotifyId,
+            name: spotifyArtist.name,
+            imageUrl: spotifyArtist.imageUrl,
+            genres: spotifyArtist.genres,
+          },
+        })
+      }
+
+      album = await this.prisma.album.create({
+        data: {
+          spotifyId: spotifyAlbum.spotifyId,
+          title: spotifyAlbum.title,
+          coverUrl: spotifyAlbum.coverUrl,
+          releaseDate: spotifyAlbum.releaseDate,
+          totalTracks: spotifyAlbum.totalTracks,
+          albumType: spotifyAlbum.albumType,
+          artistId: spotifyAlbum.artistId,
+          label: spotifyAlbum.label,
+          tracks: {
+            create: spotifyAlbum.tracks.map((track: any) => ({
+              number: track.number,
+              name: track.name,
+              durationMs: track.durationMs,
+            })),
+          },
+        },
+      })
     }
 
     return this.prisma.review.create({
@@ -27,7 +62,7 @@ export class ReviewsService {
       },
       include: {
         user: { select: { id: true, username: true, avatarUrl: true } },
-        album: true,
+        album: { include: { artist: true } },
       },
     })
   }

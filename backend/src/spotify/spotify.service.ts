@@ -169,4 +169,29 @@ export class SpotifyService {
       deezer: platforms.deezer?.url ?? null,
     }
   }
+
+  async searchAlbums(query: string) {
+    const token = await this.getAccessToken()
+
+    const response = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=album&limit=8`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    )
+
+    const data = await response.json()
+    return data.albums.items
+      .filter((album: any) => album.album_type === 'album')
+      .map((album: any) => ({
+        spotifyId: album.id,
+        title: album.name,
+        coverUrl: album.images?.[0]?.url ?? null,
+        releaseDate: new Date(album.release_date),
+        totalTracks: album.total_tracks,
+        albumType: album.album_type,
+        artistId: album.artists?.[0]?.id,
+        artistName: album.artists?.[0]?.name,
+      }))
+  }
 }

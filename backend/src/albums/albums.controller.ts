@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common'
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common'
 import { AlbumsService } from './albums.service'
 import { AuthGuard } from '@nestjs/passport'
 
@@ -6,6 +6,11 @@ import { AuthGuard } from '@nestjs/passport'
 @Controller('albums')
 export class AlbumsController {
   constructor(private albumsService: AlbumsService) {}
+
+  @Get('search')
+  search(@Query('q') q: string) {
+    return this.albumsService.search(q)
+  }
 
   @Get(':id/score')
   getScore(@Param('id') id: string) {

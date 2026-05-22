@@ -117,4 +117,32 @@ export class AlbumsService {
     async getStreamingLinks(spotifyId: string) {
         return this.spotify.getStreamingLinks(spotifyId)
     }
+
+    async search(query: string) {
+        const local = await this.prisma.album.findMany({
+            where: {
+                OR: [
+                    { title: { contains: query, mode: 'insensitive' } },
+                    { artist: { name: { contains: query, mode: 'insensitive' } } },
+                ],
+            },
+            include: { artist: true },
+            take: 8,
+        })
+
+        if (local.length >= 4) return local
+
+        const spotifyAlbums = await this.spotify.searchAlbums(query)
+
+        return spotifyAlbums.map((album: any) => ({
+            spotifyId: album.spotifyId,
+            title: album.title,
+            coverUrl: album.coverUrl,
+            releaseDate: album.releaseDate,
+            totalTracks: album.totalTracks,
+            albumType: album.albumType,
+            artistId: album.artistId,
+            artist: { name: album.artistName ?? '' },
+        }))
+    }
 }
