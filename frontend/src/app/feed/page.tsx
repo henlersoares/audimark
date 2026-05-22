@@ -21,7 +21,11 @@ export default function FeedPage() {
       router.push('/login')
       return
     }
-    loadFeed()
+
+    const timer = setTimeout(() => {
+      loadFeed()
+    }, 300)
+    return () => clearTimeout(timer)
   }, [])
 
   const loadFeed = async () => {
@@ -39,7 +43,7 @@ export default function FeedPage() {
     <div style={{ minHeight: '100vh', background: '#1a1a1a' }}>
       <Navbar />
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 80px' }}>
-        <ComposeBar />
+        <ComposeBar onSuccess={loadFeed} />
 
         {loading ? (
           <div style={{ padding: '40px', textAlign: 'center' }}>
