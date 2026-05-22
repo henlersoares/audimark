@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Calendar, Music, Users, Edit2 } from 'lucide-react'
+import { Calendar, Music, Users, Edit2, LayoutGrid, List, ChevronDown } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Avatar from '@/components/ui/Avatar'
 import ScoreBadge from '@/components/ui/ScoreBadge'
@@ -32,6 +32,8 @@ export default function ProfilePage() {
   const [favorites, setFavorites] = useState<any[]>([])
   const [wantToListen, setWantToListen] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
+  const [sortOrder, setSortOrder] = useState<'recent' | 'high' | 'low'>('recent')
   const isOwner = user?.username === username
 
   useEffect(() => {
@@ -76,6 +78,12 @@ export default function ProfilePage() {
       setIsFollowing(!isFollowing)
     } catch {}
   }
+
+  const sortedReviews = [...reviews].sort((a, b) => {
+    if (sortOrder === 'high') return b.score - a.score
+    if (sortOrder === 'low') return a.score - b.score
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
 
   if (loading) {
     return (
@@ -233,14 +241,66 @@ export default function ProfilePage() {
 
           {/* Reviews */}
           <div>
-            <div style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '16px' }}>
-              Avaliações recentes
+            {/* Header da seção */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <span style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                Avaliações recentes
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* Filtro de ordenação */}
+                <div style={{ position: 'relative' }}>
+                  <select
+                    value={sortOrder}
+                    onChange={e => setSortOrder(e.target.value as any)}
+                    style={{
+                      background: '#1a1a1a', border: '0.5px solid #2a2a2a',
+                      borderRadius: '6px', padding: '4px 24px 4px 8px',
+                      fontSize: '11px', color: '#888', cursor: 'pointer',
+                      outline: 'none', appearance: 'none',
+                    }}
+                  >
+                    <option value="recent">Mais recentes</option>
+                    <option value="high">Nota mais alta</option>
+                    <option value="low">Nota mais baixa</option>
+                  </select>
+                  <ChevronDown size={10} color="#555" style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                </div>
+
+                {/* Botões de view mode */}
+                <div style={{ display: 'flex', gap: '2px', background: '#1a1a1a', borderRadius: '6px', padding: '2px', border: '0.5px solid #2a2a2a' }}>
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setViewMode('list')}
+                    style={{
+                      background: viewMode === 'list' ? '#2a2a2a' : 'transparent',
+                      border: 'none', borderRadius: '4px', padding: '4px 6px',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center',
+                      color: viewMode === 'list' ? '#fff' : '#555',
+                    }}
+                  >
+                    <List size={13} />
+                  </motion.button>
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setViewMode('grid')}
+                    style={{
+                      background: viewMode === 'grid' ? '#2a2a2a' : 'transparent',
+                      border: 'none', borderRadius: '4px', padding: '4px 6px',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center',
+                      color: viewMode === 'grid' ? '#fff' : '#555',
+                    }}
+                  >
+                    <LayoutGrid size={13} />
+                  </motion.button>
+                </div>
+              </div>
             </div>
+
             {reviews.length === 0 ? (
               <p style={{ fontSize: '13px', color: '#444', textAlign: 'center', padding: '40px' }}>Nenhuma avaliação ainda.</p>
-            ) : (
+            ) : viewMode === 'list' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {reviews.map((review, i) => (
+                {sortedReviews.map((review, i) => (
                   <motion.div
                     key={review.id}
                     initial={{ opacity: 0, y: 8 }}
@@ -269,6 +329,32 @@ export default function ProfilePage() {
                           "{review.content.slice(0, 120)}{review.content.length > 120 ? '...' : ''}"
                         </p>
                       )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px' }}>
+                {sortedReviews.map((review, i) => (
+                  <motion.div
+                    key={review.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.03 }}
+                    onClick={() => router.push(`/album/${review.albumId}`)}
+                    style={{ cursor: 'pointer', position: 'relative' }}
+                    whileHover={{ scale: 1.04 }}
+                  >
+                    <div style={{ position: 'relative', borderRadius: '6px', overflow: 'hidden' }}>
+                      <AlbumCover coverUrl={review.album?.coverUrl} title={review.album?.title ?? ''} size="100%" borderRadius={6} />
+                      <div style={{
+                        position: 'absolute', bottom: '4px', right: '4px',
+                      }}>
+                        <ScoreBadge score={review.score} size="sm" />
+                      </div>
+                    </div>
+                    <div style={{ marginTop: '5px', fontSize: '11px', color: '#ccc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {review.album?.title}
                     </div>
                   </motion.div>
                 ))}
