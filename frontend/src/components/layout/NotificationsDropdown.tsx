@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bell, Check } from 'lucide-react'
+import { Bell, Check, Heart, MessageCircle, CornerDownLeft, AtSign, UserPlus, Music } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import TimeAgo from '@/components/ui/TimeAgo'
@@ -15,17 +15,17 @@ interface Notification {
   link?: string
   createdAt: string
 }
-
 function getNotificationIcon(type: string) {
-  const icons: Record<string, string> = {
-    like_review: '❤️',
-    comment_review: '💬',
-    reply_comment: '↩️',
-    mention: '@',
-    new_follower: '👤',
-    new_release: '🎵',
+  const iconProps = { size: 14, strokeWidth: 2 }
+  const icons: Record<string, { icon: React.ReactNode; color: string }> = {
+    like_review: { icon: <Heart {...iconProps} />, color: '#f43f5e' },
+    comment_review: { icon: <MessageCircle {...iconProps} />, color: '#60a5fa' },
+    reply_comment: { icon: <CornerDownLeft {...iconProps} />, color: '#a78bfa' },
+    mention: { icon: <AtSign {...iconProps} />, color: '#34d399' },
+    new_follower: { icon: <UserPlus {...iconProps} />, color: '#60a5fa' },
+    new_release: { icon: <Music {...iconProps} />, color: '#f59e0b' },
   }
-  return icons[type] ?? '🔔'
+  return icons[type] ?? { icon: <Bell {...iconProps} />, color: '#888' }
 }
 
 function FollowBackButton({ notification }: { notification: Notification }) {
@@ -216,12 +216,23 @@ export default function NotificationsDropdown() {
                       background: notification.read ? 'transparent' : '#1d4ed808',
                     }}
                   >
-                    <span
-                      onClick={() => handleClick(notification)}
-                      style={{ fontSize: '16px', flexShrink: 0, marginTop: '1px', cursor: 'pointer' }}
-                    >
-                      {getNotificationIcon(notification.type)}
-                    </span>
+                    {(() => {
+                      const { icon, color } = getNotificationIcon(notification.type)
+                      return (
+                        <div
+                          onClick={() => handleClick(notification)}
+                          style={{
+                            flexShrink: 0, marginTop: '1px', cursor: 'pointer',
+                            color, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            width: '28px', height: '28px', borderRadius: '50%',
+                            background: `${color}18`,
+                          }}
+                        >
+                          {icon}
+                        </div>
+                      )
+                    })()}
+                    
                     <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => handleClick(notification)}>
                       <div style={{ fontSize: '12px', color: notification.read ? '#777' : '#ccc', lineHeight: 1.4 }}>
                         {notification.message}
