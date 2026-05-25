@@ -10,6 +10,7 @@ import ScoreBadge from '@/components/ui/ScoreBadge'
 import AlbumCover from '@/components/ui/AlbumCover'
 import TimeAgo from '@/components/ui/TimeAgo'
 import AddAlbumModal from '@/components/ui/AddAlbumModal'
+import FollowersModal from '@/components/ui/FollowersModal'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/auth.store'
 
@@ -29,6 +30,9 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [reviews, setReviews] = useState<any[]>([])
   const [followingArtists, setFollowingArtists] = useState<any[]>([])
+  const [followersModal, setFollowersModal] = useState<'followers' | 'following' | null>(null)
+  const [followerCount, setFollowerCount] = useState(0)
+  const [followingCount, setFollowingCount] = useState(0)
   const [isFollowing, setIsFollowing] = useState(false)
   const [favorites, setFavorites] = useState<any[]>([])
   const [wantToListen, setWantToListen] = useState<any[]>([])
@@ -59,6 +63,13 @@ export default function ProfilePage() {
       setFollowingArtists(artistsRes.data)
       setFavorites(favRes.data)
       setWantToListen(wantRes.data)
+
+      const [fCountRes, fingCountRes] = await Promise.all([
+        api.get(`/follows/users/${profileRes.data.id}/followers`),
+        api.get(`/follows/users/${profileRes.data.id}/following`),
+      ])
+      setFollowerCount(fCountRes.data.length)
+      setFollowingCount(fingCountRes.data.length)
 
       try {
         const followRes = await api.get('/follows/users')
@@ -182,6 +193,20 @@ export default function ProfilePage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#555' }}>
                 <Users size={12} />
                 <strong style={{ color: '#ccc' }}>{followingArtists.length}</strong> artistas seguidos
+              </div>
+              <div
+                onClick={() => setFollowersModal('following')}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#555', cursor: 'pointer' }}
+              >
+                <Users size={12} />
+                <strong style={{ color: '#ccc' }}>{followingCount}</strong> seguindo
+              </div>
+              <div
+                onClick={() => setFollowersModal('followers')}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#555', cursor: 'pointer' }}
+              >
+                <Users size={12} />
+                <strong style={{ color: '#ccc' }}>{followerCount}</strong> seguidores
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#555' }}>
                 <Calendar size={12} />
@@ -462,6 +487,15 @@ export default function ProfilePage() {
           onSelect={handleAddWantToListen}
         />
       )}
+
+      {followersModal && (
+        <FollowersModal
+          userId={profile.id}
+          tab={followersModal}
+          onClose={() => setFollowersModal(null)}
+        />
+      )}
+
     </div>
   )
 }
