@@ -5,7 +5,7 @@ import { AuthGuard } from '@nestjs/passport'
 @UseGuards(AuthGuard('jwt'))
 @Controller('follows')
 export class FollowsController {
-  constructor(private followsService: FollowsService) {}
+  constructor(private followsService: FollowsService) { }
 
   @Post('artists/:artistId')
   followArtist(@Param('artistId') artistId: string, @Request() req) {
@@ -35,6 +35,16 @@ export class FollowsController {
   @Get('users')
   getFollowingUsers(@Request() req) {
     return this.followsService.getFollowingUsers(req.user.id)
+  }
+
+  @Get('users/:userId/following')
+  getFollowingByUser(@Param('userId') userId: string) {
+    return this.followsService.getFollowingUsers(userId)
+  }
+
+  @Get('users/:userId/followers')
+  getFollowersByUser(@Param('userId') userId: string) {
+    return this.followsService.getFollowers(userId)
   }
 
   @Get('followers')
