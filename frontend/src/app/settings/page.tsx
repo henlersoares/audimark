@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Camera } from 'lucide-react'
@@ -15,8 +15,10 @@ export default function SettingsPage() {
   const [name, setName] = useState('')
   const [bio, setBio] = useState('')
   const [loading, setLoading] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (user) {
@@ -38,6 +40,28 @@ export default function SettingsPage() {
       setError('Erro ao salvar alterações')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingAvatar(true)
+    setError('')
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await api.post('/users/me/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      setAuth(res.data, localStorage.getItem('audimark_token') ?? '')
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 3000)
+    } catch {
+      setError('Erro ao fazer upload da foto')
+    } finally {
+      setUploadingAvatar(false)
     }
   }
 
@@ -64,18 +88,39 @@ export default function SettingsPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px' }}>
           <div style={{ position: 'relative' }}>
             <Avatar username={user.username} avatarUrl={user.avatarUrl} size={72} />
-            <div style={{
-              position: 'absolute', bottom: 0, right: 0,
-              width: '24px', height: '24px', borderRadius: '50%',
-              background: '#1d4ed8', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', cursor: 'pointer',
-            }}>
-              <Camera size={12} color="#fff" />
-            </div>
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                position: 'absolute', bottom: 0, right: 0,
+                width: '24px', height: '24px', borderRadius: '50%',
+                background: uploadingAvatar ? '#333' : '#1d4ed8',
+                display: 'flex', alignItems: 'center',
+                justifyContent: 'center', cursor: 'pointer',
+              }}
+            >
+              {uploadingAvatar
+                ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '10px', height: '10px', border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%' }} />
+                : <Camera size={12} color="#fff" />
+              }
+            </motion.div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              style={{ display: 'none' }}
+            />
           </div>
           <div>
             <div style={{ fontSize: '14px', color: '#fff', fontWeight: 500 }}>{user.username}</div>
-            <div style={{ fontSize: '12px', color: '#555', marginTop: '2px' }}>Foto de perfil em breve</div>
+            <div
+              style={{ fontSize: '12px', color: '#60a5fa', marginTop: '2px', cursor: 'pointer' }}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {uploadingAvatar ? 'Enviando...' : 'Alterar foto de perfil'}
+            </div>
           </div>
         </div>
 
