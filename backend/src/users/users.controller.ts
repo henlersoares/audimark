@@ -1,6 +1,8 @@
-import { Controller, Get, Patch, Param, Body, Request, UseGuards, Query } from '@nestjs/common'
+import { Controller, Get, Patch, Param, Body, Request, UseGuards, Query, Post, UploadedFile, UseInterceptors } from '@nestjs/common'
 import { UsersService } from './users.service'
 import { AuthGuard } from '@nestjs/passport'
+import { FileInterceptor } from '@nestjs/platform-express'
+import 'multer'
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('users')
@@ -25,5 +27,11 @@ export class UsersController {
   @Patch('me')
   update(@Request() req, @Body() body: { name?: string; bio?: string; avatarUrl?: string }) {
     return this.usersService.update(req.user.id, body)
+  }
+
+  @Post('me/avatar')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadAvatar(@Request() req, @UploadedFile() file: any) {
+    return this.usersService.uploadAvatar(req.user.id, file)
   }
 }

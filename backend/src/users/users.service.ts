@@ -1,6 +1,14 @@
 import { Injectable, ConflictException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import * as bcrypt from 'bcrypt'
+import { v2 as cloudinary } from 'cloudinary'
+import 'multer'
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 @Injectable()
 export class UsersService {
@@ -101,5 +109,23 @@ export class UsersService {
         createdAt: true,
       },
     })
+  }
+  async uploadAvatar(userId: string, file: any) {
+    const result = await new Promise<any>((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          folder: 'audimark/avatars',
+          public_id: `avatar_${userId}`,
+          overwrite: true,
+          transformation: [{ width: 200, height: 200, crop: 'fill', gravity: 'face' }],
+        },
+        (error, result) => {
+          if (error) reject(error)
+          else resolve(result)
+        }
+      ).end(file.buffer)
+    })
+
+    return this.update(userId, { avatarUrl: result.secure_url })
   }
 }
