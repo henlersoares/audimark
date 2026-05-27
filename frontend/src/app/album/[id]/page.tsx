@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Calendar, Music, Building2, Clock } from 'lucide-react'
+import { ArrowLeft, Calendar, Music, Building2, Clock, Heart } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import AlbumCover from '@/components/ui/AlbumCover'
 import ReviewModal from '@/components/feed/ReviewModal'
@@ -51,6 +51,38 @@ function formatDate(dateStr: string) {
     })
 }
 
+function ReviewLikeButton({ reviewId }: { reviewId: string }) {
+    const [liked, setLiked] = useState(false)
+    const [likeCount, setLikeCount] = useState(0)
+
+    useEffect(() => {
+        api.get(`/likes/reviews/${reviewId}`)
+            .then(res => { setLiked(res.data.liked); setLikeCount(res.data.count) })
+            .catch(() => { })
+    }, [reviewId])
+
+    const handleLike = async () => {
+        try {
+            const res = await api.post(`/likes/reviews/${reviewId}`)
+            setLiked(res.data.liked)
+            setLikeCount(prev => res.data.liked ? prev + 1 : prev - 1)
+        } catch { }
+    }
+
+    return (
+        <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={handleLike}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: liked ? '#f43f5e' : '#555', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '8px' }}
+        >
+            <motion.div animate={{ scale: liked ? [1, 1.3, 1] : 1 }} transition={{ duration: 0.2 }}>
+                <Heart size={15} fill={liked ? '#f43f5e' : 'none'} />
+            </motion.div>
+            {likeCount}
+        </motion.button>
+    )
+}
+
 export default function AlbumPage() {
     const { id } = useParams<{ id: string }>()
     const router = useRouter()
@@ -92,12 +124,12 @@ export default function AlbumPage() {
             try {
                 const favRes = await api.get('/favorites')
                 setIsFavorite(favRes.data.some((f: any) => f.albumId === id))
-            } catch {}
+            } catch { }
 
             try {
                 const wantRes = await api.get('/favorites/want-to-listen')
                 setIsWantToListen(wantRes.data.some((w: any) => w.albumId === id))
-            } catch {}
+            } catch { }
 
         } catch {
             console.error('Erro ao carregar álbum')
@@ -332,6 +364,7 @@ export default function AlbumPage() {
                                     {review.content && (
                                         <p style={{ fontSize: '13px', color: '#777', lineHeight: 1.6, fontStyle: 'italic' }}>"{review.content}"</p>
                                     )}
+                                    <ReviewLikeButton reviewId={review.id} />
                                 </motion.div>
                             ))}
                         </div>
