@@ -34,4 +34,9 @@ export class UsersController {
   uploadAvatar(@Request() req, @UploadedFile() file: any) {
     return this.usersService.uploadAvatar(req.user.id, file)
   }
+
+  @Patch('me/username')
+  changeUsername(@Request() req, @Body() body: { username: string }) {
+    return this.usersService.changeUsername(req.user.id, body.username)
+  }
 }
