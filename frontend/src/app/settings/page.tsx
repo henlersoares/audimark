@@ -26,11 +26,16 @@ export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (user) {
-      setName(user.name ?? '')
-      setBio(user.bio ?? '')
+    const loadUser = async () => {
+      try {
+        const res = await api.get('/users/me')
+        setAuth(res.data, localStorage.getItem('audimark_token') ?? '')
+        setName(res.data.name ?? '')
+        setBio(res.data.bio ?? '')
+      } catch { }
     }
-  }, [user])
+    loadUser()
+  }, [])
 
   const handleSubmit = async () => {
     setLoading(true)
