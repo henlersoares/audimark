@@ -6,14 +6,22 @@ import { motion } from 'framer-motion'
 import Navbar from '@/components/layout/Navbar'
 import ComposeBar from '@/components/feed/ComposeBar'
 import ReviewCard from '@/components/feed/ReviewCard'
+import PostCard from '@/components/feed/PostCard'
+import ListCard from '@/components/feed/ListCard'
 import { useAuthStore } from '@/store/auth.store'
 import api from '@/lib/api'
 import { Review } from '@/types'
 
+interface FeedItem {
+  type: 'review' | 'post' | 'list'
+  createdAt: string
+  data: any
+}
+
 export default function FeedPage() {
-  const { isAuthenticated, user } = useAuthStore()
+  const { isAuthenticated } = useAuthStore()
   const router = useRouter()
-  const [reviews, setReviews] = useState<Review[]>([])
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -30,10 +38,22 @@ export default function FeedPage() {
 
   const loadFeed = async () => {
     try {
-      const res = await api.get('/reviews/feed')
-      setReviews(res.data)
-    } catch {
-      console.error('Erro ao carregar feed')
+      const [reviewsRes, postsRes, listsRes] = await Promise.all([
+        api.get('/reviews/feed').catch(e => { console.error('reviews error', e.response?.data); return { data: [] } }),
+        api.get('/posts/feed').catch(e => { console.error('posts error', e.response?.data); return { data: [] } }),
+        api.get('/lists/feed').catch(e => { console.error('lists error', e.response?.data); return { data: [] } }),
+      ])
+
+      const items: FeedItem[] = [
+        ...reviewsRes.data.map((r: Review) => ({ type: 'review' as const, createdAt: r.createdAt, data: r })),
+        ...postsRes.data.map((p: any) => ({ type: 'post' as const, createdAt: p.createdAt, data: p })),
+        ...listsRes.data.map((l: any) => ({ type: 'list' as const, createdAt: l.createdAt, data: l })),
+      ]
+
+      items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      setFeedItems(items)
+    } catch (e: any) {
+      console.error('Erro ao carregar feed', e.response?.data)
     } finally {
       setLoading(false)
     }
@@ -55,7 +75,7 @@ export default function FeedPage() {
               Carregando...
             </motion.div>
           </div>
-        ) : reviews.length === 0 ? (
+        ) : feedItems.length === 0 ? (
           <div style={{ padding: '60px 20px', textAlign: 'center' }}>
             <p style={{ fontSize: '16px', color: '#333', marginBottom: '8px', fontFamily: 'Playfair Display, serif' }}>
               Seu feed está vazio
@@ -65,13 +85,18 @@ export default function FeedPage() {
             </p>
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            {reviews.map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            {feedItems.map((item) => {
+              if (item.type === 'review') {
+                return <ReviewCard key={`review-${item.data.id}`} review={item.data} />
+              }
+              if (item.type === 'post') {
+                return <PostCard key={`post-${item.data.id}`} post={item.data} onDelete={loadFeed} />
+              }
+              if (item.type === 'list') {
+                return <ListCard key={`list-${item.data.id}`} list={item.data} onDelete={loadFeed} />
+              }
+            })}
           </motion.div>
         )}
       </div>

@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Star, PenLine } from 'lucide-react'
+import { Star, PenLine, List } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import Avatar from '@/components/ui/Avatar'
 import ReviewFromFeedModal from '@/components/feed/ReviewFromFeedModal'
+import PostModal from '@/components/feed/PostModal'
+import ListModal from '@/components/feed/ListModal'
 
 interface ComposeBarProps {
   onSuccess?: () => void
@@ -14,6 +16,8 @@ interface ComposeBarProps {
 export default function ComposeBar({ onSuccess }: ComposeBarProps) {
   const { user } = useAuthStore()
   const [showReviewModal, setShowReviewModal] = useState(false)
+  const [showPostModal, setShowPostModal] = useState(false)
+  const [showListModal, setShowListModal] = useState(false)
 
   return (
     <>
@@ -48,6 +52,7 @@ export default function ComposeBar({ onSuccess }: ComposeBarProps) {
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
+            onClick={() => setShowPostModal(true)}
             style={{
               background: 'transparent', color: '#60a5fa',
               border: '0.5px solid #1d4ed844', borderRadius: '6px',
@@ -57,6 +62,19 @@ export default function ComposeBar({ onSuccess }: ComposeBarProps) {
           >
             <PenLine size={13} /> Publicação
           </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => setShowListModal(true)}
+            style={{
+              background: 'transparent', color: '#a78bfa',
+              border: '0.5px solid #7c3aed44', borderRadius: '6px',
+              padding: '7px 14px', fontSize: '12px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '6px',
+            }}
+          >
+            <List size={13} /> Lista
+          </motion.button>
         </div>
       </div>
 
@@ -65,6 +83,26 @@ export default function ComposeBar({ onSuccess }: ComposeBarProps) {
           onClose={() => setShowReviewModal(false)}
           onSuccess={() => {
             setShowReviewModal(false)
+            onSuccess?.()
+          }}
+        />
+      )}
+
+      {showPostModal && (
+        <PostModal
+          onClose={() => setShowPostModal(false)}
+          onSuccess={() => {
+            setShowPostModal(false)
+            onSuccess?.()
+          }}
+        />
+      )}
+
+      {showListModal && (
+        <ListModal
+          onClose={() => setShowListModal(false)}
+          onSuccess={() => {
+            setShowListModal(false)
             onSuccess?.()
           }}
         />
