@@ -2,8 +2,10 @@ export interface User {
   id: string
   username: string
   email: string
+  name?: string
   avatarUrl?: string
   bio?: string
+  usernameChangeCount?: number
   createdAt: string
 }
 
@@ -55,6 +57,7 @@ export interface User {
   name?: string
   avatarUrl?: string
   bio?: string
+  usernameChangeCount?: number
   createdAt: string
 }
 

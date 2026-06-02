@@ -14,10 +14,15 @@ export default function SettingsPage() {
   const { user, setAuth } = useAuthStore()
   const [name, setName] = useState('')
   const [bio, setBio] = useState('')
+  const [newUsername, setNewUsername] = useState('')
+  const [editingUsername, setEditingUsername] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [loadingUsername, setLoadingUsername] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [usernameSuccess, setUsernameSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [usernameError, setUsernameError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -46,7 +51,6 @@ export default function SettingsPage() {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
     setUploadingAvatar(true)
     setError('')
     try {
@@ -65,7 +69,28 @@ export default function SettingsPage() {
     }
   }
 
+  const handleChangeUsername = async () => {
+    if (!newUsername.trim()) return
+    setLoadingUsername(true)
+    setUsernameError('')
+    setUsernameSuccess(false)
+    setEditingUsername(false)
+    try {
+      const res = await api.patch('/users/me/username', { username: newUsername.trim() })
+      setAuth(res.data, localStorage.getItem('audimark_token') ?? '')
+      setNewUsername('')
+      setUsernameSuccess(true)
+      setTimeout(() => setUsernameSuccess(false), 3000)
+    } catch (err: any) {
+      setUsernameError(err.response?.data?.message ?? 'Erro ao alterar username')
+    } finally {
+      setLoadingUsername(false)
+    }
+  }
+
   if (!user) return null
+
+  const changesLeft = 3 - (user.usernameChangeCount ?? 0)
 
   return (
     <div style={{ minHeight: '100vh', background: '#1a1a1a' }}>
@@ -127,18 +152,78 @@ export default function SettingsPage() {
         {/* Campos */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
+          {/* Username */}
           <div>
-            <label style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
-              Username
-            </label>
-            <input
-              value={user.username}
-              disabled
-              style={{ width: '100%', background: '#141414', border: '0.5px solid #222', borderRadius: '8px', padding: '10px 12px', fontSize: '14px', color: '#444', outline: 'none', cursor: 'not-allowed' }}
-            />
-            <p style={{ fontSize: '11px', color: '#444', marginTop: '4px' }}>O username não pode ser alterado</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <label style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                Username
+              </label>
+              <span style={{ fontSize: '11px', color: changesLeft > 0 ? '#555' : '#f43f5e' }}>
+                {changesLeft} alteração{changesLeft !== 1 ? 'ões' : ''} restante{changesLeft !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={editingUsername ? newUsername : user.username}
+                onChange={e => setNewUsername(e.target.value)}
+                disabled={!editingUsername || changesLeft <= 0}
+                onKeyDown={e => e.key === 'Enter' && editingUsername && handleChangeUsername()}
+                style={{
+                  flex: 1, background: '#141414', border: '0.5px solid #222',
+                  borderRadius: '8px', padding: '10px 12px', fontSize: '14px',
+                  color: !editingUsername || changesLeft <= 0 ? '#444' : '#fff', outline: 'none',
+                  cursor: !editingUsername || changesLeft <= 0 ? 'not-allowed' : 'text',
+                }}
+              />
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => {
+                  if (editingUsername) {
+                    handleChangeUsername()
+                  } else {
+                    setEditingUsername(true)
+                    setNewUsername(user.username)
+                  }
+                }}
+                disabled={changesLeft <= 0 || (editingUsername && (!newUsername.trim() || loadingUsername))}
+                style={{
+                  background: editingUsername ? '#1d4ed8' : '#222',
+                  color: editingUsername ? '#fff' : '#888',
+                  border: 'none', borderRadius: '8px', padding: '10px 16px',
+                  fontSize: '13px', fontWeight: 600,
+                  cursor: changesLeft <= 0 ? 'not-allowed' : 'pointer',
+                  opacity: changesLeft <= 0 ? 0.5 : 1,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {loadingUsername ? '...' : editingUsername ? 'Confirmar' : 'Alterar'}
+              </motion.button>
+              {editingUsername && (
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => { setEditingUsername(false); setNewUsername('') }}
+                  style={{
+                    background: 'transparent', color: '#555', border: '0.5px solid #333',
+                    borderRadius: '8px', padding: '10px 12px',
+                    fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap',
+                  }}
+                >
+                  Cancelar
+                </motion.button>
+              )}
+            </div>
+            {usernameError && <p style={{ fontSize: '11px', color: '#f43f5e', marginTop: '4px' }}>{usernameError}</p>}
+            {usernameSuccess && <p style={{ fontSize: '11px', color: '#22c55e', marginTop: '4px' }}>Username alterado com sucesso!</p>}
+            {changesLeft <= 0
+              ? <p style={{ fontSize: '11px', color: '#f43f5e', marginTop: '4px' }}>Limite de alterações atingido.</p>
+              : <p style={{ fontSize: '11px', color: '#444', marginTop: '4px' }}>Intervalo mínimo de 30 dias entre alterações.</p>
+            }
           </div>
 
+          {/* Nome */}
           <div>
             <label style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
               Nome
@@ -152,6 +237,7 @@ export default function SettingsPage() {
             />
           </div>
 
+          {/* Bio */}
           <div>
             <label style={{ fontSize: '11px', color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
               Bio
